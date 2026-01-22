@@ -7,5 +7,7 @@ import java.util.Optional;
 public interface ImageService {
     List<Image> getAllImages();
     Optional<Image> getImage(int id);
+
+    void save(Image image);
 }
 

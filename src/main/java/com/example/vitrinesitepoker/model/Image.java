@@ -21,4 +21,9 @@ public class Image {
     private String titre;
 
     private String url;
+
+    public Image(String titre, String url) {
+        this.titre = titre;
+        this.url = url;
+    }
 }
