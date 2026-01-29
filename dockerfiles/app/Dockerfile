@@ -40,7 +40,10 @@ RUN rm -rf webapps/*
 COPY --from=build /app/target/*.war webapps/ROOT.war
 
 # Droits propres
-RUN chown -R tomcat:tomcat webapps
+#RUN chown -R tomcat:tomcat webapps
+
+# Définir le profil Spring actif
+ENV SPRING_PROFILES_ACTIVE=prod
 
 EXPOSE 8080
 
