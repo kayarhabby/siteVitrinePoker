@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.example</groupId>
     <artifactId>vitrineSitePoker</artifactId>
-    <version>V3</version>
+    <version>V4</version>
     <packaging>war</packaging>
     <name>vitrineSitePoker</name>
     <description>vitrineSitePoker</description>
