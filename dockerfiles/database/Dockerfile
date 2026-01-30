@@ -13,7 +13,7 @@ ENV MYSQL_ROOT_PASSWORD=sitepasswordroot \
 WORKDIR /docker-entrypoint-initdb.d
 
 # Copier le dump SQL dans le dossier d'init
-COPY dockerfiles/database/siteVitrineDB.sql ./siteVitrineDB.sql
+COPY src/main/resources/siteVitrineDB.sql ./siteVitrineDB.sql
 
 # Donner les bons droits au user mysql (déjà présent dans l’image)
 RUN chown -R mysql:mysql /docker-entrypoint-initdb.d \
