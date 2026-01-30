@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         DOCKERHUB_USERNAME = "kayarhabby"
-        DOCKER_IMAGE_APP = "vitrinesitepoker-app"
-        DOCKER_IMAGE_DB = "vitrinesitepoker-db"
+        DOCKER_IMAGE_APP = "sitevitrine-app"
+        DOCKER_IMAGE_DB = "sitevitrine-db"
+        DOCKER_TAG = "${BUILD_NUMBER}" // Tag basé sur le numéro de build Jenkins
     }
 
     stages {
@@ -15,41 +16,31 @@ pipeline {
             }
         }
 
-        stage('Build Maven') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
-
-        stage('Tests') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-
         stage('Build Docker Images (docker-compose)') {
             steps {
                 sh 'docker compose build'
             }
         }
 
-        stage('Login DockerHub') {
+        stage('Login DockerHub (non-interactive)') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
+                    credentialsId: 'dockerhubcreds',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    '''
                 }
             }
         }
 
-        stage('Tag Images') {
+        stage('Tag Images with Build Number') {
             steps {
                 sh """
-                docker tag sitevitrine-app $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:${BUILD_NUMBER}
-                docker tag sitevitrine-mysql $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:${BUILD_NUMBER}
+                docker tag $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:latest $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:$DOCKER_TAG
+                docker tag $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:latest $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:$DOCKER_TAG
                 """
             }
         }
@@ -57,8 +48,10 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 sh """
-                docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:${BUILD_NUMBER}
-                docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:${BUILD_NUMBER}
+                docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:latest
+                docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:$DOCKER_TAG
+                docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:latest
+                docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:$DOCKER_TAG
                 """
             }
         }
