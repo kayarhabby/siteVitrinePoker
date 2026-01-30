@@ -39,8 +39,10 @@ pipeline {
         stage('Tag Images with Build Number') {
             steps {
                 sh """
-                docker tag $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:latest
-                docker tag $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:latest
+                docker tag $DOCKER_IMAGE_APP:latest $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:latest
+                docker tag $DOCKER_IMAGE_APP:latest $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:$DOCKER_TAG
+                docker tag $DOCKER_IMAGE_DB:latest $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:latest
+                docker tag $DOCKER_IMAGE_DB:latest $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:$DOCKER_TAG
                 """
             }
         }
@@ -49,9 +51,9 @@ pipeline {
             steps {
                 sh """
                 docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:latest
-//                 docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:$DOCKER_TAG
+                docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_APP:$DOCKER_TAG
                 docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:latest
-//                 docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:$DOCKER_TAG
+                docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_DB:$DOCKER_TAG
                 """
             }
         }
