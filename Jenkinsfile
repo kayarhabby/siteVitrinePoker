@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_USERNAME = "kayarhabby"
         DOCKER_IMAGE_APP = "sitevitrine-app"
-        DOCKER_IMAGE_DB = "sitevitrine-db"
+        DOCKER_IMAGE_DB = "sitevitrine-mysql"
         DOCKER_TAG = "${BUILD_NUMBER}" // Tag basé sur le numéro de build Jenkins
     }
 
