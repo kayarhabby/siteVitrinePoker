@@ -1,6 +1,6 @@
-# --------------------------
-# StorageClass pour PVC (gp3 économique)
-# --------------------------
+# ==========================
+# StorageClass (gp3 économique, ext4)
+# ==========================
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -11,3 +11,8 @@ parameters:
   csi.storage.k8s.io/fstype: ext4
   type: gp3
   encrypted: "true"
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: topology.ebs.csi.aws.com/zone
+        values:
+          - us-east-1a  # adapte selon ton cluster
