@@ -1,3 +1,6 @@
+# --------------------------
+# Service Application (NodePort)
+# --------------------------
 apiVersion: v1
 kind: Service
 metadata:
@@ -5,8 +8,8 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app.kubernetes.io/name: sitevitrineapp
+    app: sitevitrineapp
   ports:
-    - port: 80
-      targetPort: 7080
-      nodePort: 30007
+    - port: 8080        # port interne du Service
+      targetPort: 7080  # port du container
+      nodePort: 30007   # port externe accessible depuis ton navigateur

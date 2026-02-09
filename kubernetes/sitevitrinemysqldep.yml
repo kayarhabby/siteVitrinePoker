@@ -1,3 +1,6 @@
+# --------------------------
+# Deployment MySQL
+# --------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,7 +8,7 @@ metadata:
   labels:
     app: sitevitrinemysql
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: sitevitrinemysql
@@ -14,11 +17,40 @@ spec:
       labels:
         app: sitevitrinemysql
     spec:
+      initContainers:
+        - name: init-mysql
+          image: busybox
+          command: ["sh", "-c", "rm -rf /var/lib/mysql/lost+found || true"]
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
       containers:
         - name: sitevitrinemysql
           image: kayarhabby/sitevitrine-mysql:latest
-          envFrom:
-           - secretRef:
-               name: db-secret
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_DATABASE
+              value: siteVitrineDB
           ports:
             - containerPort: 3306
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc

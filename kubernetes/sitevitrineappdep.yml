@@ -1,3 +1,6 @@
+# --------------------------
+# Deployment Application Spring Boot
+# --------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,8 +17,32 @@ spec:
       labels:
         app: sitevitrineapp
     spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z sitevitrinemysql 3306; do
+                echo "Waiting for MySQL..."
+                sleep 5
+              done
       containers:
         - name: sitevitrineapp
           image: kayarhabby/sitevitrine-app:latest
           ports:
             - containerPort: 7080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://sitevitrinemysql:3306/siteVitrineDB
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
