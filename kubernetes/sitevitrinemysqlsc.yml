@@ -8,11 +8,6 @@ metadata:
 provisioner: ebs.csi.aws.com
 volumeBindingMode: WaitForFirstConsumer
 parameters:
-  csi.storage.k8s.io/fstype: xfs
+  csi.storage.k8s.io/fstype: ext4
   type: gp3
   encrypted: "true"
-allowedTopologies:
-  - matchLabelExpressions:
-      - key: topology.ebs.csi.aws.com/zone
-        values:
-          - us-east-1a
