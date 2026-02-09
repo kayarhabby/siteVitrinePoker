@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sitevitrineapp
+spec:
+  containers:
+    - name: sitevitrineapp
+      image: kayarhabby/sitevitrine-app:latest
+      ports:
+        - containerPort: 7080

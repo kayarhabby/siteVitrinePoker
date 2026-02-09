@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sitevitrineapp
+  labels:
+    app: sitevitrineapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sitevitrineapp
+  template:
+    metadata:
+      labels:
+        app: sitevitrineapp
+    spec:
+      containers:
+        - name: sitevitrineapp
+          image: kayarhabby/sitevitrine-app:latest
+          ports:
+            - containerPort: 7080

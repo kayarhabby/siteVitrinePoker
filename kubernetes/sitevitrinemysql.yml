@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sitevitrinemysql
+spec:
+  containers:
+    - name: sitevitrinemysql
+      image: kayarhabby/sitevitrine-mysql:latest
+      ports:
+        - containerPort: 3306
