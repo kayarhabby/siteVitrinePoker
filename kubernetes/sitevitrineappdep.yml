@@ -33,6 +33,11 @@ spec:
           image: kayarhabby/sitevitrine-app:latest
           ports:
             - containerPort: 7080
+          resources:
+            requests:
+              ephemeral-storage: 2Gi
+            limits:
+              ephemeral-storage: 4Gi
           env:
             - name: SPRING_DATASOURCE_URL
               value: jdbc:mysql://sitevitrinemysql:3306/siteVitrineDB
