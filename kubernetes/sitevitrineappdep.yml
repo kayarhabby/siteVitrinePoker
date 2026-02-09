@@ -49,17 +49,3 @@ spec:
                 secretKeyRef:
                   name: mysql-secret
                   key: MYSQL_PASSWORD
-
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 7080
-            initialDelaySeconds: 15
-            periodSeconds: 5
-
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 7080
-            initialDelaySeconds: 30
-            periodSeconds: 10
