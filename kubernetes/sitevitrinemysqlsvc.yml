@@ -4,11 +4,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: sitevitrinemysql
+  name: sitevitrine-mysql-svc
 spec:
   type: ClusterIP
   selector:
-    app: sitevitrinemysql
+    app: sitevitrine-mysql
   ports:
     - port: 3306
       targetPort: 3306
+

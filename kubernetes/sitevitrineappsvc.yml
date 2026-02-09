@@ -18,14 +18,26 @@
 # --------------------------
 # Service Application (LoadBalancer)
 # --------------------------
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: sitevitrineapp
+#spec:
+#  type: LoadBalancer       # <-- remplace NodePort
+#  selector:
+#    app: sitevitrineapp
+#  ports:
+#    - port: 80             # port exposé par le LB
+#      targetPort: 7080     # port du container
+
 apiVersion: v1
 kind: Service
 metadata:
-  name: sitevitrineapp
+  name: sitevitrine-app-svc
 spec:
-  type: LoadBalancer       # <-- remplace NodePort
+  type: ClusterIP
   selector:
-    app: sitevitrineapp
+    app: sitevitrine-app
   ports:
-    - port: 80             # port exposé par le LB
-      targetPort: 7080     # port du container
+    - port: 80
+      targetPort: 7080

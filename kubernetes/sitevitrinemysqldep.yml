@@ -4,18 +4,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sitevitrinemysql
-  labels:
-    app: sitevitrinemysql
+  name: sitevitrine-mysql
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sitevitrinemysql
+      app: sitevitrine-mysql
   template:
     metadata:
       labels:
-        app: sitevitrinemysql
+        app: sitevitrine-mysql
     spec:
       initContainers:
         - name: init-mysql
@@ -25,24 +23,12 @@ spec:
             - name: mysql-storage
               mountPath: /var/lib/mysql
       containers:
-        - name: sitevitrinemysql
+        - name: mysql
           image: kayarhabby/sitevitrine-mysql:latest
+          envFrom:
+            - secretRef:
+                name: mysql-secret
           env:
-            - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: db-secret
-                  key: MYSQL_ROOT_PASSWORD
-            - name: MYSQL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: db-secret
-                  key: MYSQL_USER
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: db-secret
-                  key: MYSQL_PASSWORD
             - name: MYSQL_DATABASE
               value: siteVitrineDB
           ports:

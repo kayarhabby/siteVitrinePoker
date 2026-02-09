@@ -4,18 +4,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sitevitrineapp
-  labels:
-    app: sitevitrineapp
+  name: sitevitrine-app
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: sitevitrineapp
+      app: sitevitrine-app
   template:
     metadata:
       labels:
-        app: sitevitrineapp
+        app: sitevitrine-app
     spec:
       initContainers:
         - name: wait-for-mysql
@@ -24,12 +22,12 @@ spec:
             - sh
             - -c
             - |
-              until nc -z sitevitrinemysql 3306; do
+              until nc -z sitevitrine-mysql-svc 3306; do
                 echo "Waiting for MySQL..."
                 sleep 5
               done
       containers:
-        - name: sitevitrineapp
+        - name: app
           image: kayarhabby/sitevitrine-app:latest
           ports:
             - containerPort: 7080
@@ -40,14 +38,14 @@ spec:
               ephemeral-storage: 4Gi
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://sitevitrinemysql:3306/siteVitrineDB
+              value: jdbc:mysql://sitevitrine-mysql-svc:3306/siteVitrineDB
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: mysql-secret
                   key: MYSQL_USER
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: mysql-secret
                   key: MYSQL_PASSWORD
