@@ -30,7 +30,7 @@ spec:
         - name: app
           image: kayarhabby/sitevitrine-app:latest
           ports:
-            - containerPort: 7080
+            - containerPort: 7090
           resources:
             requests:
               ephemeral-storage: 2Gi

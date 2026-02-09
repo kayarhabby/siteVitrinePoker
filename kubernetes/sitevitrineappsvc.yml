@@ -52,5 +52,6 @@ spec:
     app: sitevitrine-app
   ports:
     - port: 80
-      targetPort: 7080
+      targetPort: 7090
       nodePort: 30080
+      protocol: TCP
