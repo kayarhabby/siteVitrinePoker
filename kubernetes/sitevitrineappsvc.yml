@@ -30,14 +30,27 @@
 #    - port: 80             # port exposé par le LB
 #      targetPort: 7080     # port du container
 
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: sitevitrine-app-svc
+#spec:
+#  type: ClusterIP
+#  selector:
+#    app: sitevitrine-app
+#  ports:
+#    - port: 80
+#      targetPort: 7080
+
 apiVersion: v1
 kind: Service
 metadata:
-  name: sitevitrine-app-svc
+  name: sitevitrine-app-nodeport
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: sitevitrine-app
   ports:
     - port: 80
       targetPort: 7080
+      nodePort: 30080
