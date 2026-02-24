@@ -1,5 +1,5 @@
 # =============================================================
-# SiteVitrine Helm Chart - Default Values
+# SiteVitrine Helm Chart - OPTIMIZED VALUES
 # =============================================================
 
 # ----------------------------
@@ -15,10 +15,13 @@ app:
   port: 8080
   resources:
     requests:
-      ephemeralStorage: 2Gi
+      cpu: 200m
+      memory: 256Mi
+      ephemeralStorage: 1Gi
     limits:
-      ephemeralStorage: 4Gi
-  # Variables d'environnement supplémentaires
+      cpu: 500m
+      memory: 512Mi
+      ephemeralStorage: 2Gi
   extraEnv: []
 
 service:
@@ -39,7 +42,6 @@ mysql:
   database: siteVitrineDB
   port: 3306
 
-  # Secrets (à surcharger en production avec des valeurs sécurisées !)
   secret:
     name: mysql-secret
     rootPassword: sitepasswordroot
@@ -63,58 +65,43 @@ mysql:
     zone: us-east-1a
 
 # ----------------------------
-# Monitoring (Prometheus + Grafana)
+# Monitoring
 # ----------------------------
 monitoring:
   enabled: true
-
-  # Namespace dédié au monitoring (optionnel)
   namespace: monitoring
 
-  # ServiceMonitor pour scraper l'app Spring Boot
   serviceMonitor:
     enabled: true
     interval: 30s
     path: /actuator/prometheus
 
-  # Alertes Prometheus
   prometheusRule:
     enabled: true
 
-# kube-prometheus-stack subchart values
+# ----------------------------
+# kube-prometheus-stack
+# ----------------------------
 kube-prometheus-stack:
   fullnameOverride: prometheus
 
-  # ----------------------------
-  # node-exporter — métriques système de chaque nœud
-  # (CPU, RAM, disque, réseau au niveau OS)
-  # ----------------------------
   nodeExporter:
-    enabled: true       # Déploie un DaemonSet sur tous les nœuds
-    hostRootfs: true    # Accès au filesystem hôte pour les métriques disque
+    enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
 
-  prometheus-node-exporter:
-    tolerations:
-      # Scraper aussi les nœuds taintés (master, GPU, etc.)
-      - key: node-role.kubernetes.io/master
-        operator: Exists
-        effect: NoSchedule
-      - operator: Exists
-        effect: NoExecute
-
-  # ----------------------------
-  # kube-state-metrics — métriques d'état des objets Kubernetes
-  # (pods, deployments, replicasets, PVC, jobs…)
-  # ----------------------------
   kubeStateMetrics:
     enabled: true
 
   kube-state-metrics:
     metricLabelsAllowlist:
-      # Expose les labels des pods et deployments dans les métriques
       - pods=[app,release,version]
       - deployments=[app,release]
-      - nodes=[kubernetes.io/hostname,node.kubernetes.io/instance-type]
     resources:
       requests:
         memory: 64Mi
@@ -123,80 +110,33 @@ kube-prometheus-stack:
         memory: 256Mi
         cpu: 200m
 
-  # ----------------------------
-  # Prometheus
-  # ----------------------------
   prometheus:
     prometheusSpec:
-      # Scrape les ServiceMonitors/PodMonitors de TOUS les namespaces
-      serviceMonitorSelectorNilUsesHelmValues: false
-      serviceMonitorNamespaceSelector: {}
-      serviceMonitorSelector: {}
-      podMonitorSelectorNilUsesHelmValues: false
-      podMonitorNamespaceSelector: {}
-      podMonitorSelector: {}
+      scrapeInterval: 30s
+      evaluationInterval: 30s
 
-      # Scrape également les pods avec annotations prometheus.io/scrape: "true"
-      additionalScrapeConfigs:
-        - job_name: "kubernetes-pods"
-          kubernetes_sd_configs:
-            - role: pod
-          relabel_configs:
-            # Garder uniquement les pods annotés pour le scraping
-            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-              action: keep
-              regex: "true"
-            # Utiliser le chemin défini dans l'annotation (ex: /actuator/prometheus)
-            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-              action: replace
-              target_label: __metrics_path__
-              regex: (.+)
-            # Utiliser le port défini dans l'annotation
-            - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-              action: replace
-              regex: ([^:]+)(?::\d+)?;(\d+)
-              replacement: $1:$2
-              target_label: __address__
-            # Enrichir les métriques avec les métadonnées du pod
-            - action: labelmap
-              regex: __meta_kubernetes_pod_label_(.+)
-            - source_labels: [__meta_kubernetes_namespace]
-              action: replace
-              target_label: kubernetes_namespace
-            - source_labels: [__meta_kubernetes_pod_name]
-              action: replace
-              target_label: kubernetes_pod_name
-            - source_labels: [__meta_kubernetes_pod_node_name]
-              action: replace
-              target_label: kubernetes_node
+      retention: 7d
+      retentionSize: "6GB"
 
-        - job_name: "kubernetes-nodes-cadvisor"
-          # cAdvisor expose les métriques CPU/RAM/réseau par conteneur
-          scheme: https
-          tls_config:
-            ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-            insecure_skip_verify: true
-          bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-          kubernetes_sd_configs:
-            - role: node
-          relabel_configs:
-            - action: labelmap
-              regex: __meta_kubernetes_node_label_(.+)
-            - target_label: __address__
-              replacement: kubernetes.default.svc:443
-            - source_labels: [__meta_kubernetes_node_name]
-              regex: (.+)
-              target_label: __metrics_path__
-              replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+      enableAdminAPI: true
+      walCompression: true
 
-      retention: 15d
       resources:
         requests:
-          memory: 400Mi
-          cpu: 200m
-        limits:
           memory: 1Gi
           cpu: 500m
+        limits:
+          memory: 2Gi
+          cpu: 1
+
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelector: {}
+      serviceMonitorNamespaceSelector: {}
+
+      podMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelector: {}
+      podMonitorNamespaceSelector: {}
+
       storageSpec:
         volumeClaimTemplate:
           spec:
@@ -207,23 +147,16 @@ kube-prometheus-stack:
               requests:
                 storage: 10Gi
 
-  # ----------------------------
-  # Composants control plane Kubernetes
-  # ----------------------------
   kubelet:
     enabled: true
     serviceMonitor:
-      # Métriques cAdvisor (conteneurs) en plus du kubelet
       cAdvisor: true
-      probesMetricRelabelings: []
 
   kubeApiServer:
-    enabled: true   # Métriques de l'API server (requêtes, latence…)
-
+    enabled: true
   kubeProxy:
     enabled: true
 
-  # Sur EKS, etcd/controller-manager/scheduler ne sont pas accessibles
   kubeEtcd:
     enabled: false
   kubeControllerManager:
@@ -231,75 +164,50 @@ kube-prometheus-stack:
   kubeScheduler:
     enabled: false
 
-  # ----------------------------
-  # Grafana
-  # ----------------------------
   grafana:
     enabled: true
-    adminPassword: "grafana-admin-password"  # À changer en production !
-    service:
-      type: NodePort
-      nodePort: 30300
+    adminPassword: "grafana-admin-password"
+
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 200m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+
     persistence:
       enabled: true
       storageClassName: ebs-gp3-sc
-      size: 2Gi
+      size: 5Gi
 
-    dashboardProviders:
-      dashboardproviders.yaml:
-        apiVersion: 1
-        providers:
-          - name: "sitevitrine"
-            orgId: 1
-            folder: "SiteVitrine"
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/sitevitrine
+    service:
+      type: NodePort
+      nodePort: 30300
 
-    dashboards:
-      sitevitrine:
-        # Spring Boot JVM (Micrometer)
-        spring-boot-jvm:
-          gnetId: 12900
-          revision: 1
-          datasource: Prometheus
+    plugins:
+      - grafana-piechart-panel
+      - grafana-worldmap-panel
 
-        # Kubernetes cluster global (nœuds, namespaces, pods)
-        kubernetes-cluster:
-          gnetId: 7249
-          revision: 1
-          datasource: Prometheus
-
-        # Vue détaillée par nœud (CPU, RAM, disque, réseau)
-        node-exporter-full:
-          gnetId: 1860
-          revision: 37
-          datasource: Prometheus
-
-        # Détail des pods et conteneurs (cAdvisor)
-        kubernetes-pods:
-          gnetId: 6336
-          revision: 1
-          datasource: Prometheus
-
-        # kube-state-metrics : état des déploiements, PVC, jobs
-        kubernetes-state:
-          gnetId: 13332
-          revision: 12
-          datasource: Prometheus
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        folder: /var/lib/grafana/dashboards
+      datasources:
+        enabled: true
+        label: grafana_datasource
 
     grafana.ini:
       server:
         root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
-      # Activer la découverte automatique des dashboards
+      users:
+        allow_sign_up: true
       dashboards:
         default_home_dashboard_path: ""
+      database:
+        wal: true
 
-  # ----------------------------
-  # Alertmanager
-  # ----------------------------
   alertmanager:
     enabled: true
     alertmanagerSpec:
