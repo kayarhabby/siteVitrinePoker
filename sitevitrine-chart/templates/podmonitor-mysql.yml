@@ -1,0 +1,26 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.serviceMonitor.enabled }}
+# --------------------------
+# PodMonitor - Scrape direct des pods MySQL
+# (mysqld_exporter doit être présent dans l'image ou en sidecar)
+# --------------------------
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ .Values.mysql.name }}-podmonitor
+  labels:
+    app: {{ .Values.mysql.name }}
+    release: prometheus
+    {{- include "sitevitrine.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.mysql.name }}
+  podMetricsEndpoints:
+    - port: mysql
+      path: /metrics
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      # Si mysqld_exporter tourne sur un port dédié (9104 par défaut),
+      # remplacer par le nom du port exposé dans le deployment MySQL.
+      # En l'absence d'exporter, ce PodMonitor peut être désactivé
+      # sans affecter le reste du monitoring.
+{{- end }}

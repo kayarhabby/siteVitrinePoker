@@ -1,0 +1,62 @@
+# --------------------------
+# Deployment Application Spring Boot
+# --------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  labels:
+    app: {{ .Values.app.name }}
+    {{- include "sitevitrine.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+      {{- if .Values.monitoring.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: {{ .Values.app.port | quote }}
+      {{- end }}
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z {{ include "sitevitrine.mysqlSvcName" . }} {{ .Values.mysql.port }}; do
+                echo "Waiting for MySQL..."
+                sleep 5
+              done
+      containers:
+        - name: app
+          image: {{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.app.port }}
+          resources:
+            requests:
+              ephemeral-storage: {{ .Values.app.resources.requests.ephemeralStorage }}
+            limits:
+              ephemeral-storage: {{ .Values.app.resources.limits.ephemeralStorage }}
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://{{ include "sitevitrine.mysqlSvcName" . }}:{{ .Values.mysql.port }}/{{ .Values.mysql.database }}
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.secret.name }}
+                  key: MYSQL_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.secret.name }}
+                  key: MYSQL_PASSWORD

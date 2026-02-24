@@ -1,0 +1,55 @@
+﻿SiteVitrine déployé avec succès !
+
+========================================================
+  APPLICATION
+========================================================
+URL de l'application (NodePort) :
+  http://<NODE_IP>:{{ .Values.service.nodePort }}
+
+Pour obtenir l'IP du nœud :
+  kubectl get nodes -o wide
+
+========================================================
+  MONITORING
+========================================================
+{{- if .Values.monitoring.enabled }}
+
+Prometheus + Grafana activés
+
+Grafana (NodePort) :
+  http://<NODE_IP>:30300
+  Login : admin / <password>
+
+Prometheus (port-forward) :
+  kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 -n {{ .Values.monitoring.namespace }}
+  http://localhost:9090
+
+Dashboards préconfigurés dans Grafana :
+  - Spring Boot JVM Micrometer (ID: 12900)
+  - Kubernetes Cluster Overview (ID: 7249)
+
+{{- else }}
+
+Monitoring désactivé. Pour l'activer :
+  helm upgrade {{ .Release.Name }} ./sitevitrine-chart --set monitoring.enabled=true
+
+{{- end }}
+
+========================================================
+  COMMANDES UTILES
+========================================================
+# Voir les pods
+kubectl get pods -l app={{ .Values.app.name }}
+kubectl get pods -l app={{ .Values.mysql.name }}
+
+# Logs de l'app
+kubectl logs -l app={{ .Values.app.name }} --tail=100
+
+# Logs MySQL
+kubectl logs -l app={{ .Values.mysql.name }} --tail=100
+
+# Vérifier les ServiceMonitors
+kubectl get servicemonitors
+
+# Vérifier les règles d'alerte
+kubectl get prometheusrules

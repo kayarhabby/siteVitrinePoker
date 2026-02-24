@@ -1,0 +1,17 @@
+# --------------------------
+# Service MySQL (ClusterIP interne)
+# --------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sitevitrine.mysqlSvcName" . }}
+  labels:
+    app: {{ .Values.mysql.name }}
+    {{- include "sitevitrine.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.mysql.name }}
+  ports:
+    - port: {{ .Values.mysql.port }}
+      targetPort: {{ .Values.mysql.port }}

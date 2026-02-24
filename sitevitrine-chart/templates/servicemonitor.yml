@@ -1,0 +1,23 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.serviceMonitor.enabled }}
+# --------------------------
+# ServiceMonitor - Prometheus scrape config pour l'app Spring Boot
+# Requiert: kube-prometheus-stack installé
+# --------------------------
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.app.name }}-monitor
+  labels:
+    app: {{ .Values.app.name }}
+    release: prometheus   # doit matcher le label du kube-prometheus-stack
+    {{- include "sitevitrine.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  endpoints:
+    - port: http
+      path: {{ .Values.monitoring.serviceMonitor.path }}
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      scheme: http
+{{- end }}

@@ -1,0 +1,16 @@
+# ==========================
+# PersistentVolumeClaim MySQL
+# ==========================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  labels:
+    {{- include "sitevitrine.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.mysql.persistence.accessMode }}
+  storageClassName: {{ .Values.mysql.persistence.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.mysql.persistence.size }}
