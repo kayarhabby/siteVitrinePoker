@@ -45,7 +45,7 @@ COPY --from=build /app/target/*.jar webapps/ROOT.jar
 # Définir le profil Spring actif
 ENV SPRING_PROFILES_ACTIVE=prod
 
-EXPOSE 80
+EXPOSE 8080
 
 # Lancer Tomcat
 CMD ["catalina.sh", "run"]
