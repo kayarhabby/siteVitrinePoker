@@ -37,7 +37,7 @@ WORKDIR /usr/local/tomcat
 RUN rm -rf webapps/*
 
 # Copier le WAR depuis l’étape build
-COPY --from=build /app/target/*.war webapps/ROOT.war
+COPY --from=build /app/target/*.jar webapps/ROOT.jar
 
 # Droits propres
 #RUN chown -R tomcat:tomcat webapps
